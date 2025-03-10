@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Registrar rutas
+// Registrar rutas de tablas
 app.use("/categories", categoryRoutes);
 app.use("/products", productRoutes);
 
