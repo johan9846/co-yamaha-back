@@ -1,5 +1,7 @@
 const express = require("express");
 const {
+  filterProducts,
+  searchProducts,
   getProducts,
   createProduct,
   updateProduct,
@@ -7,7 +9,8 @@ const {
 } = require("../controllers/product.controller");
 
 const router = express.Router();
-
+router.get("/filter", filterProducts);
+router.get("/search", searchProducts); // Ruta para buscar productos
 router.get("/allProducts", getProducts);
 router.post("/addProduct", createProduct);
 router.put("/updateProduct/:id", updateProduct); 

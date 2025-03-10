@@ -67,6 +67,55 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { getProducts, createProduct, updateProduct, deleteProduct };
+
+// Buscar productos por coincidencia en el nombre
+const searchProducts = async (req, res) => {
+    try {
+        const { query } = req.query; // Obtener el texto de búsqueda desde la URL (ejemplo: ?query=luc)
+
+        if (!query) {
+            return res.status(400).json({ error: "Debes proporcionar un término de búsqueda" });
+        }
+
+        const products = await prisma.product.findMany({
+            where: {
+                name: {
+                    contains: query, // Busca coincidencias en cualquier parte del name
+                    mode: "insensitive", // Hace la búsqueda sin distinguir entre mayúsculas y minúsculas
+                },
+            },
+        });
+
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: "Error al buscar productos" });
+    }
+};
+
+
+const filterProducts = async (req, res) => {
+    try {
+        const { brand, model, category_id } = req.query;
+
+        // Construimos dinámicamente el objeto de filtro
+        const filters = {};
+        if (brand) filters.brand = { contains: brand, mode: "insensitive" };
+        if (model) filters.model = { contains: model, mode: "insensitive" };
+        if (category_id) filters.category_id = Number(category_id); // Convertir a número
+
+        const products = await prisma.product.findMany({
+            where: filters,
+            include: { category: true }, // Incluir categoría si se desea
+        });
+
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: "Error al filtrar productos" });
+    }
+};
+
+
+
+module.exports = {filterProducts,searchProducts, getProducts, createProduct, updateProduct, deleteProduct };
 
 
