@@ -25,7 +25,7 @@ const createCategory = async (req, res) => {
     }
 
     const category = await prisma.category.create({ data: { name } });
-    res.status(201).json({
+    res.status(200).json({
       message: "Category added successfully",
       data: category,
     });
@@ -34,6 +34,8 @@ const createCategory = async (req, res) => {
     res.status(400).json({ error: "No se pudo crear la categoría" });
   }
 };
+
+
 const getCategoryProducts = async (req, res) => {
   try {
     const category = await prisma.category.findUnique({
@@ -53,4 +55,33 @@ const getCategoryProducts = async (req, res) => {
   }
 };
 
-module.exports = { getCategoryProducts, getCategories, createCategory };
+
+const updateCategory = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const {name, status } = req.body;
+
+      const existingCategory = await prisma.category.findUnique({ where: { id: Number(id) } });
+
+      if (!existingCategory) {
+          return res.status(404).json({ error: "categoria no encontrado" });
+      }
+
+      const updateCategory = await prisma.category.update({
+          where: { id: Number(id) },
+          data: { name, status },
+      });
+
+      res.json(updateCategory);
+  } catch (error) {
+      res.status(400).json({ error: "No se pudo actualizar categoria" });
+  }
+};
+
+
+module.exports = {
+  getCategoryProducts,
+  getCategories,
+  createCategory,
+  updateCategory
+};

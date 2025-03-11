@@ -48,24 +48,33 @@ const updateProduct = async (req, res) => {
     }
 };
 
-// **Eliminar un producto por ID**
+
+
+
 const deleteProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const existingProduct = await prisma.product.findUnique({ where: { id: Number(id) } });
-
-        if (!existingProduct) {
-            return res.status(404).json({ error: "Producto no encontrado" });
-        }
-
-        await prisma.product.delete({ where: { id: Number(id) } });
-
-        res.json({ message: "Producto eliminado correctamente" });
+      const { ids } = req.body; // Recibe siempre un array de IDs
+  
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: "The 'ids' array is required and cannot be empty" });
+      }
+  
+      // 🟢 Prisma deleteMany devuelve { count: número }
+      const deletedRowCount = await prisma.product.deleteMany({
+        where: { id: { in: ids } }, // Asegurarse de usar `in`
+      });
+  
+      if (deletedRowCount.count === 0) {
+        return res.status(404).json({ error: "No product found to delete" });
+      }
+  
+      return res.status(200).json({ message: `Deleted ${deletedRowCount.count} product successfully` });
+  
     } catch (error) {
-        res.status(500).json({ error: "No se pudo eliminar el producto" });
+      console.error("Error during deleteproduct:", error);
+      return res.status(500).json({ error: "Error deleting product" });
     }
-};
+  };
 
 
 // Buscar productos por coincidencia en el nombre
@@ -82,8 +91,10 @@ const searchProducts = async (req, res) => {
                 name: {
                     contains: query, // Busca coincidencias en cualquier parte del name
                     mode: "insensitive", // Hace la búsqueda sin distinguir entre mayúsculas y minúsculas
+                    
                 },
             },
+            include: { category: true }, // Incluir la categoría en la respuesta
         });
 
         res.json(products);

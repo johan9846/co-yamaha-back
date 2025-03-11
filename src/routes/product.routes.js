@@ -14,6 +14,6 @@ router.get("/search", searchProducts); // Ruta para buscar productos
 router.get("/allProducts", getProducts);
 router.post("/addProduct", createProduct);
 router.put("/updateProduct/:id", updateProduct); 
-router.delete("/deleteProduct/:id", deleteProduct); 
+router.delete("/deleteProduct", deleteProduct); 
 
 module.exports = router;
