@@ -1,3 +1,4 @@
+const cloudinary = require("../config/cloudinary");
 const prisma = require("../config/database");
 
 // Obtener todos los productos
@@ -13,15 +14,15 @@ const getProducts = async (req, res) => {
 // Crear un producto
 const createProduct = async (req, res) => {
     try {
-        const { brand, model, category_id, name, oldPrice, price, rating, image, description } = req.body;
-        const product = await prisma.product.create({
-            data: { brand, model, category_id, name, oldPrice, price, rating, image, description },
-        });
-        res.json(product);
+        const { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description } = req.body;
+      const product = await prisma.product.create({
+            data: { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description },
+      });
+      res.json(product);
     } catch (error) {
-        res.status(400).json({ error: "No se pudo crear el producto" });
+      res.status(400).json({ error: "No se pudo crear el producto" });
     }
-};
+  };
 
 
 
@@ -29,7 +30,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { brand, model, category_id, name, oldPrice, price, rating, image, description } = req.body;
+        const { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description } = req.body;
 
         const existingProduct = await prisma.product.findUnique({ where: { id: Number(id) } });
 
@@ -39,7 +40,7 @@ const updateProduct = async (req, res) => {
 
         const updatedProduct = await prisma.product.update({
             where: { id: Number(id) },
-            data: { brand, model, category_id, name, oldPrice, price, rating, image, description },
+            data: { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description },
         });
 
         res.json(updatedProduct);
