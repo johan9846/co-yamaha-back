@@ -26,7 +26,7 @@ model Product {
   oldPrice    Float
   price       Float
   rating      Float
-  image       String
+  images        String[]  // Array de URLs de imágenes
   description String
   createdAt DateTime @default(now()) // ✅ Se establece la fecha actual por defecto
   quantity_stock Int    @default(1) 

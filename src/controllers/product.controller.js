@@ -1,4 +1,4 @@
-const cloudinary = require("../config/cloudinary");
+
 const prisma = require("../config/database");
 
 // Obtener todos los productos
@@ -14,12 +14,43 @@ const getProducts = async (req, res) => {
 // Crear un producto
 const createProduct = async (req, res) => {
     try {
-        const { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description } = req.body;
+      const {
+        brand,
+        model,
+        category_id,
+        name,
+        oldPrice,
+        price,
+        rating,
+        images,
+        quantity_stock,
+        description,
+      } = req.body;
+  
+      // Validar que `images` sea un array de strings
+      if (!Array.isArray(images)) {
+        return res.status(400).json({ error: "El campo 'images' debe ser un array de URLs" });
+      }
+  
+      // Crear el producto en la base de datos
       const product = await prisma.product.create({
-            data: { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description },
+        data: {
+          brand,
+          model,
+          category_id,
+          name,
+          oldPrice,
+          price,
+          rating,
+          images, // Aquí se pasa el array de imágenes
+          quantity_stock,
+          description,
+        },
       });
+  
       res.json(product);
     } catch (error) {
+      console.error("Error al crear el producto:", error);
       res.status(400).json({ error: "No se pudo crear el producto" });
     }
   };
@@ -30,7 +61,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description } = req.body;
+        const { brand, model, category_id, name, oldPrice, price, rating, images, quantity_stock, description } = req.body;
 
         const existingProduct = await prisma.product.findUnique({ where: { id: Number(id) } });
 
@@ -40,7 +71,7 @@ const updateProduct = async (req, res) => {
 
         const updatedProduct = await prisma.product.update({
             where: { id: Number(id) },
-            data: { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description },
+            data: { brand, model, category_id, name, oldPrice, price, rating, images, quantity_stock, description },
         });
 
         res.json(updatedProduct);
