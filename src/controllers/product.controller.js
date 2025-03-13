@@ -1,5 +1,11 @@
-const cloudinary = require("../config/cloudinary");
+const cloudinary = require("../config/cloudinary"); // ✅ Importa correctamente en CommonJS
+
 const prisma = require("../config/database");
+
+console.log(cloudinary, "cloudinary " )
+
+
+
 
 // Obtener todos los productos
 const getProducts = async (req, res) => {
@@ -13,17 +19,50 @@ const getProducts = async (req, res) => {
 
 // Crear un producto
 const createProduct = async (req, res) => {
-    try {
-        const { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description } = req.body;
-      const product = await prisma.product.create({
-            data: { brand, model, category_id, name, oldPrice, price, rating, image, quantity_stock, description },
-      });
-      res.json(product);
-    } catch (error) {
-      res.status(400).json({ error: "No se pudo crear el producto" });
-    }
-  };
+  try {
+    let { brand, model, category_id, name, oldPrice, price, rating, quantity_stock, description } = req.body;
 
+    // Convertir valores numéricos
+    category_id = category_id ? Number(category_id) : null; // ✅ Opcional: null si no se envía
+    oldPrice = parseFloat(oldPrice);
+    price = parseFloat(price);
+    rating = parseFloat(rating);
+    quantity_stock = parseInt(quantity_stock, 10);
+
+ 
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No se ha proporcionado una imagen" });
+    }
+
+    // Sube la imagen a Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "productos",
+      resource_type: "image",
+    });
+
+    // Crea el producto con la URL de la imagen subida
+    const product = await prisma.product.create({
+      data: {
+        brand,
+        model,
+        category_id, 
+        name,
+        oldPrice,
+        price,
+        rating,
+        image: result.secure_url,
+        quantity_stock,
+        description,
+      },
+    });
+
+    res.json(product);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "No se pudo crear el producto" });
+  }
+};
 
 
 // **Editar un producto por ID**
