@@ -199,7 +199,52 @@ const getProductsId = async (req, res) => {
   }
 };
 
+const getBrands = async (_req, res) => {
+  try {
+    const brands = await prisma.product.findMany({
+      select: { brand: true },
+      distinct: ["brand"],
+    });
+    res.json(brands);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las brands" });
+  }
+};
+
+const getModelsByBrand = async (req, res) => {
+  const { brand } = req.body; // 👈 Se obtiene desde req.body
+  try {
+    const models = await prisma.product.findMany({
+      where: { brand },
+      select: { model: true },
+      distinct: ["model"],
+    });
+    res.json(models);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los modelos" });
+  }
+};
+
+const getCategoriesByBrandAndModel = async (req, res) => {
+  const { brand, model } = req.body; // 👈 Se obtienen desde req.body
+  try {
+    const categories = await prisma.product.findMany({
+      where: { brand, model },
+      select: {
+        category: {
+          select: { id: true, name: true },
+        },
+      },
+      distinct: ["category_id"],
+    });
+    res.json(categories.map(item => item.category));
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las categorías" });
+  }
+};
+
 module.exports = {
+  getBrands, getModelsByBrand, getCategoriesByBrandAndModel,
   getProductsId,
   filterProducts,
   searchProducts,
