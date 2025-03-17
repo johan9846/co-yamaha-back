@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getProductsId,
   filterProducts,
   searchProducts,
   getProducts,
@@ -9,6 +10,7 @@ const {
 } = require("../controllers/product.controller");
 
 const router = express.Router();
+router.get("/product/:id", getProductsId); // Ruta para buscar productos
 router.get("/filter", filterProducts);
 router.get("/search", searchProducts); // Ruta para buscar productos
 router.get("/allProducts", getProducts);
