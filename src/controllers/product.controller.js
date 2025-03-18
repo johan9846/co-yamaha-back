@@ -138,7 +138,7 @@ const deleteProduct = async (req, res) => {
 // Buscar productos por coincidencia en el nombre
 const searchProducts = async (req, res) => {
   try {
-    const { query } = req.query; // Obtener el texto de búsqueda desde la URL (ejemplo: ?query=luc)
+    const { query } = req.body; // Obtener el texto de búsqueda desde el cuerpo de la solicitud
 
     if (!query) {
       return res
@@ -187,6 +187,7 @@ const getProductsId = async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: Number(req.params.id) },
+      include: { category: true }, // Incluir la categoría relacionada
     });
 
     if (!product)
