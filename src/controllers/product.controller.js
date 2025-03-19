@@ -138,7 +138,7 @@ const deleteProduct = async (req, res) => {
 // Buscar productos por coincidencia en el nombre
 const searchProducts = async (req, res) => {
   try {
-    const { query } = req.body; // Obtener el texto de búsqueda desde el cuerpo de la solicitud
+    const { query } = req.body;
 
     if (!query) {
       return res
@@ -146,14 +146,19 @@ const searchProducts = async (req, res) => {
         .json({ error: "Debes proporcionar un término de búsqueda" });
     }
 
+    // Dividir el término de búsqueda en palabras clave
+    const keywords = query.trim().split(/\s+/); // Dividir por espacios
+
     const products = await prisma.product.findMany({
       where: {
-        name: {
-          contains: query, // Busca coincidencias en cualquier parte del name
-          mode: "insensitive", // Hace la búsqueda sin distinguir entre mayúsculas y minúsculas
-        },
+        AND: keywords.map((word) => ({
+          name: {
+            contains: word,
+            mode: "insensitive", // Búsqueda insensible a mayúsculas
+          },
+        })),
       },
-      include: { category: true }, // Incluir la categoría en la respuesta
+      include: { category: true },
     });
 
     res.json(products);
@@ -161,6 +166,7 @@ const searchProducts = async (req, res) => {
     res.status(500).json({ error: "Error al buscar productos" });
   }
 };
+
 
 const filterProducts = async (req, res) => {
   try {
