@@ -18,7 +18,7 @@ CREATE TABLE "Product" (
     "oldPrice" DOUBLE PRECISION NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
     "rating" DOUBLE PRECISION NOT NULL,
-    "image" TEXT NOT NULL,
+    "images" TEXT[],
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "quantity_stock" INTEGER NOT NULL DEFAULT 1,

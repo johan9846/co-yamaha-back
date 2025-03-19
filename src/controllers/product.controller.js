@@ -4,103 +4,138 @@ const prisma = require("../config/database");
 const getProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
-      include: { category: true },
+      include: {
+        category: true, // ✅ Incluir la categoría
+        brands: true,   // ✅ Incluir las marcas relacionadas
+      },
     });
+
     res.json(products);
   } catch (error) {
+    console.error("Error al obtener productos:", error);
     res.status(500).json({ error: "Error al obtener productos" });
   }
 };
+
 
 // Crear un producto
 const createProduct = async (req, res) => {
   try {
     const {
-      brand,
-      model,
-      category_id,
       name,
+      brands, // Array de marcas con modelos
+      category_id,
+      quantity_stock,
       oldPrice,
       price,
       rating,
       images,
-      quantity_stock,
       description,
     } = req.body;
 
-    // Validar que `images` sea un array de strings
+    // Validaciones básicas
     if (!Array.isArray(images)) {
-      return res
-        .status(400)
-        .json({ error: "El campo 'images' debe ser un array de URLs" });
+      return res.status(400).json({ error: "El campo 'images' debe ser un array de URLs" });
     }
 
-    // Crear el producto en la base de datos
+    if (!Array.isArray(brands) || brands.length === 0) {
+      return res.status(400).json({ error: "El campo 'brands' debe ser un array con al menos una marca" });
+    }
+
+    // Crear el producto
     const product = await prisma.product.create({
       data: {
-        brand,
-        model,
-        category_id,
         name,
+        category_id,
+        quantity_stock,
         oldPrice,
         price,
         rating,
-        images, // Aquí se pasa el array de imágenes
-        quantity_stock,
+        images,
         description,
+        brands: {
+          create: brands.map((brandItem) => ({
+            name: brandItem.brand, // Nombre de la marca
+            models: brandItem.models, // Lista de modelos
+          })),
+        },
+      },
+      include: {
+        brands: true, // Incluir las marcas en la respuesta
       },
     });
 
     res.json(product);
   } catch (error) {
     console.error("Error al crear el producto:", error);
-    res.status(400).json({ error: "No se pudo crear el producto" });
+    res.status(500).json({ error: "No se pudo crear el producto" });
   }
 };
+
 
 // **Editar un producto por ID**
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      brand,
-      model,
-      category_id,
       name,
+      brands, // Array de marcas con modelos
+      category_id,
+      quantity_stock,
       oldPrice,
       price,
       rating,
       images,
-      quantity_stock,
       description,
     } = req.body;
 
+    // Verificar si el producto existe
     const existingProduct = await prisma.product.findUnique({
       where: { id: Number(id) },
+      include: { brands: true }, // Incluir las marcas actuales
     });
 
     if (!existingProduct) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
+    // Validaciones básicas
+    if (!Array.isArray(images)) {
+      return res.status(400).json({ error: "El campo 'images' debe ser un array de URLs" });
+    }
+
+    if (!Array.isArray(brands) || brands.length === 0) {
+      return res.status(400).json({ error: "El campo 'brands' debe ser un array con al menos una marca" });
+    }
+
+    // Actualizar producto
     const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
       data: {
-        brand,
-        model,
-        category_id,
         name,
+        category_id,
+        quantity_stock,
         oldPrice,
         price,
         rating,
         images,
-        quantity_stock,
         description,
+        brands: {
+          deleteMany: {}, // Elimina todas las marcas asociadas al producto
+          create: brands.map((brandItem) => ({
+            name: brandItem.brand, // Nuevo nombre de la marca
+            models: brandItem.models, // Nuevos modelos de la marca
+          })),
+        },
+      },
+      include: {
+        brands: true, // Incluir las marcas actualizadas en la respuesta
       },
     });
 
     res.json(updatedProduct);
   } catch (error) {
+    console.error("Error al actualizar el producto:", error);
     res.status(400).json({ error: "No se pudo actualizar el producto" });
   }
 };
