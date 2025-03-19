@@ -40,20 +40,28 @@ const getCategoryProducts = async (req, res) => {
   try {
     const category = await prisma.category.findUnique({
       where: { id: Number(req.params.id) },
-      select: { products: true }, // Solo seleccionamos los productos
+      select: {
+        products: {
+          include: {
+            category: true, // Incluimos la categoría en cada producto
+          },
+        },
+      },
     });
 
-    if (!category)
+    if (!category) {
       return res.status(404).json({ error: "Categoría no encontrada" });
+    }
 
-    res.json(category.products); // Devolvemos directamente los productos
+    res.json(category.products); // Retornamos los productos con su categoría incluida
   } catch (error) {
-    console.error("Error getting category products:", error);
+    console.error("Error al obtener los productos de la categoría:", error);
     res
       .status(500)
       .json({ error: "Error al obtener los productos de la categoría" });
   }
 };
+
 
 
 const updateCategory = async (req, res) => {
