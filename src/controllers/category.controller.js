@@ -44,6 +44,7 @@ const getCategoryProducts = async (req, res) => {
         products: {
           include: {
             category: true, // Incluimos la categoría en cada producto
+            brands: true,
           },
         },
       },

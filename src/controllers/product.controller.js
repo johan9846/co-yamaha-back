@@ -186,18 +186,40 @@ const searchProducts = async (req, res) => {
 
     const products = await prisma.product.findMany({
       where: {
-        AND: keywords.map((word) => ({
-          name: {
-            contains: word,
-            mode: "insensitive", // Búsqueda insensible a mayúsculas
+        OR: [
+          // Buscar en el nombre del producto
+          {
+            AND: keywords.map((word) => ({
+              name: {
+                contains: word,
+                mode: "insensitive",
+              },
+            })),
           },
-        })),
+          // Buscar en el nombre de la marca asociada
+          {
+            brands: {
+              some: {
+                AND: keywords.map((word) => ({
+                  name: {
+                    contains: word,
+                    mode: "insensitive",
+                  },
+                })),
+              },
+            },
+          },
+        ],
       },
-      include: { category: true },
+      include: {
+        category: true,
+        brands: true,
+      },
     });
 
     res.json(products);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error al buscar productos" });
   }
 };
@@ -207,28 +229,46 @@ const filterProducts = async (req, res) => {
   try {
     const { brand, model, category_id } = req.query;
 
-    // Construimos dinámicamente el objeto de filtro
+    // Construcción dinámica de filtros
     const filters = {};
-    if (brand) filters.brand = { contains: brand, mode: "insensitive" };
-    if (model) filters.model = { contains: model, mode: "insensitive" };
+    
     if (category_id) filters.category_id = Number(category_id); // Convertir a número
+
+    // Filtrado por brand y model dentro de la relación brands
+    if (brand || model) {
+      filters.brands = {
+        some: {},
+      };
+
+      if (brand) {
+        filters.brands.some.name = { contains: brand, mode: "insensitive" };
+      }
+      if (model) {
+        filters.brands.some.models = { has: model }; // "has" busca dentro del array `models`
+      }
+    }
 
     const products = await prisma.product.findMany({
       where: filters,
-      include: { category: true }, // Incluir categoría si se desea
+      include: {
+        category: true,
+        brands: true,
+      },
     });
 
     res.json(products);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error al filtrar productos" });
   }
 };
+
 
 const getProductsId = async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: Number(req.params.id) },
-      include: { category: true }, // Incluir la categoría relacionada
+      include: { category: true,  brands: true }, // Incluir la categoría relacionada
     });
 
     if (!product)
@@ -243,35 +283,39 @@ const getProductsId = async (req, res) => {
 
 const getBrands = async (_req, res) => {
   try {
-    const brands = await prisma.product.findMany({
-      select: { brand: true },
-      distinct: ["brand"],
+    const brands = await prisma.brand.findMany({
+      select: { id: true, name: true },
+      distinct: ["name"], // Corrección: Se usa Brand, no Product
     });
     res.json(brands);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las brands" });
+    res.status(500).json({ error: "Error al obtener las marcas" });
   }
 };
 
 const getModelsByBrand = async (req, res) => {
-  const { brand } = req.body; // 👈 Se obtiene desde req.body
+  const { brand } = req.body; // Se obtiene la marca desde req.body
   try {
-    const models = await prisma.product.findMany({
-      where: { brand },
-      select: { model: true },
-      distinct: ["model"],
+    const models = await prisma.brand.findMany({
+      where: { name: brand }, // Se busca por nombre de la marca
+      select: { models: true }, // Se selecciona la lista de modelos
     });
-    res.json(models);
+
+    res.json(models); // Devuelve los modelos
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los modelos" });
   }
 };
 
 const getCategoriesByBrandAndModel = async (req, res) => {
-  const { brand, model } = req.body; // 👈 Se obtienen desde req.body
+  const { brand, model } = req.body;
   try {
-    const categories = await prisma.product.findMany({
-      where: { brand, model },
+    const products = await prisma.product.findMany({
+      where: {
+        brands: {
+          some: { name: brand, models: { has: model } }, // Busca si la marca y modelo existen
+        },
+      },
       select: {
         category: {
           select: { id: true, name: true },
@@ -279,7 +323,8 @@ const getCategoriesByBrandAndModel = async (req, res) => {
       },
       distinct: ["category_id"],
     });
-    res.json(categories.map(item => item.category));
+
+    res.json(products.map(item => item.category));
   } catch (error) {
     res.status(500).json({ error: "Error al obtener las categorías" });
   }
