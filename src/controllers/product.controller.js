@@ -318,7 +318,7 @@ const getCategoriesByBrandAndModel = async (req, res) => {
       },
       select: {
         category: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, status:true },
         },
       },
       distinct: ["category_id"],
