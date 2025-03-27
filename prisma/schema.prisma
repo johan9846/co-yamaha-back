@@ -8,21 +8,32 @@ datasource db {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  products  Product[] // Relación uno a muchos con Product
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  status    String    @default("Activo")
+  createdAt DateTime  @default(now())
+  products  Product[]
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  brand       String
-  model       String
-  category_id Int      // Clave foránea para la relación con Category
-  category    Category @relation(fields: [category_id], references: [id]) // Relación con Category
-  name        String
-  oldPrice    Float
-  price       Float
-  rating      Float
-  image       String
-  description String
+  id             Int       @id @default(autoincrement())
+  category_id    Int?
+  category       Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  name           String
+  oldPrice       Float
+  price          Float
+  rating         Float
+  images         String[]
+  description    String
+  createdAt      DateTime  @default(now())
+  quantity_stock Int       @default(1)
+  brands         Brand[]   @relation("ProductBrands") // 🔹 Relación con Brand
+}
+
+model Brand {
+  id        Int      @id @default(autoincrement())
+  name      String
+  productId Int
+  product   Product  @relation("ProductBrands", fields: [productId], references: [id], onDelete: Cascade) // 🔹 Relación inversa a Product
+  models    String[] // Lista de modelos asociados a la marca
 }
