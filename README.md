@@ -37,6 +37,16 @@ Para configurarlo, sigue estos pasos:
    cd co-yamaha-back
    ```
 
+3. **Variables de entorno**
+   crear .env y poner
+
+   ```bash
+   DATABASE_URL="postgresql://johan22:yamaha@localhost:5433/yamaha_db?schema=public"
+   DB_USER=johan22
+   DB_NAME=yamaha_db
+   DB_PASSWORD=yamaha
+   ```
+
 2. **Instalar dependencias**
 
    ```bash
