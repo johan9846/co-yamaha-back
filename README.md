@@ -1,9 +1,7 @@
-# 🛍️ E-Commerce con React.js y ePayco
+# 🛍️ Backend de E-Commerce Node.js, Express, Postgres ORM prisma
 
-Esta aplicación de comercio electrónico, desarrollada en **React.js**, ofrece una experiencia de compra en línea intuitiva y eficiente.
 
 ## 🚀 Características
-
 
 - **CRUD de Productos y Categorías**: Controladores diseñados para la creación, lectura, actualización y eliminación de productos y categorías.  
 
