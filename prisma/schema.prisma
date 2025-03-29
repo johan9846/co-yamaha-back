@@ -37,3 +37,17 @@ model Brand {
   product   Product  @relation("ProductBrands", fields: [productId], references: [id], onDelete: Cascade) // 🔹 Relación inversa a Product
   models    String[] // Lista de modelos asociados a la marca
 }
+
+
+model Order {
+  id          String   @id @default(uuid())
+  name        String
+  last_name   String
+  phone       String
+  departament String
+  city        String
+  isPaid      Boolean  @default(false)
+  address     String
+  products    Json  // Se cambia de String[] a Json para almacenar objetos
+  createdAt   DateTime @default(now())
+}
